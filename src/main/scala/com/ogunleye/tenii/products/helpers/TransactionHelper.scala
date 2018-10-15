@@ -20,23 +20,22 @@ object TransactionHelper extends LazyLogging {
       }
     }
 
-    def incrementUpAndCheck(spent: Double, extra: Int, roundAmount: Int): Int = {
-
-      0
-    }
-
-    roarType.roar match {
-      case Roar.BALANCED =>
-        val extra = BigDecimal(roundedTransaction + response.transaction.amount).setScale(2, BigDecimal.RoundingMode.UP).toDouble
-        checkTeniiAmountAgainstAccount(response.account.get, extra)
-      case Roar.HUNT =>
-        val extra = BigDecimal(roundedTransaction + response.transaction.amount).setScale(2, BigDecimal.RoundingMode.UP).*(2).toDouble
-        checkTeniiAmountAgainstAccount(response.account.get, extra)
-      case Roar.STRIPES if roarType.limit.isDefined => false
-      case Roar.STRIPES if roarType.limit.isEmpty =>
-        logger.error(s"User ${response.transaction.userId} has no limit but has stripes set, investigate and fix urgently")
-        false
-    }
-
+    if (response.transaction.amount < 0) {
+      roarType.roar match {
+        case Roar.BALANCED =>
+          val extra = BigDecimal(roundedTransaction + response.transaction.amount).setScale(2, BigDecimal.RoundingMode.UP).toDouble
+          checkTeniiAmountAgainstAccount(response.account.get, extra)
+        case Roar.HUNT =>
+          val extra = BigDecimal(roundedTransaction + response.transaction.amount).setScale(2, BigDecimal.RoundingMode.UP).*(2).toDouble
+          checkTeniiAmountAgainstAccount(response.account.get, extra)
+        case Roar.STRIPES if roarType.limit.isDefined => processStripesSpend(response.transaction.amount, roarType.limit.get, response.account.get)
+        case Roar.STRIPES if roarType.limit.isEmpty =>
+          logger.error(s"User ${response.transaction.userId} has no limit but has stripes set, investigate and fix urgently")
+          false
+      }
+    } else
+      false
   }
+
+  private def processStripesSpend(spent: Double, limit: Int, account: BankAccount): Boolean = limit + spent > 0
 }
