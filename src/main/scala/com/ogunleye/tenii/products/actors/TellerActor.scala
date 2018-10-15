@@ -37,8 +37,8 @@ class TellerActor extends Actor with LazyLogging with TellerEndpoints with Trans
       http.endpointGet[List[TellerTransaction]](s"$apiHost$accounts${request.accountId}$transactions", ("Authorization", s"Bearer ${request.id}")).onComplete {
         case Success(resp) => senderRef ! resp
           val today = LocalDate.now()
-          val date = s"${today.getYear}${String.format("%02d%n", today.getMonthValue.toString)}${today.getDayOfMonth}".toInt
-          val transactions = resp.takeWhile(_.date.replace("-","").toInt >= date)
+          val date = Integer.getInteger(s"${today.getYear}${String.format("%02d%n", today.getMonthValue.toString)}${today.getDayOfMonth}")
+          val transactions = resp.takeWhile(i => Integer.getInteger(i.date.replace("-","")) >= date)
           if(transactions.nonEmpty) {
             self ! (transactions, request.accountId)
             logger.info(s"Sending ${transactions.size} transactions for potential tenii payments")
@@ -50,7 +50,7 @@ class TellerActor extends Actor with LazyLogging with TellerEndpoints with Trans
       }
     case request: (List[TellerTransaction], String) =>
       val lastTransaction = request._1.head
-      val candidateTransactions = request._1.filter(_.amount.toDouble < 0)
+      val candidateTransactions = request._1.filter(i => Double.unbox(i.amount) < 0)
       if(candidateTransactions.nonEmpty) {
         Future {
           connection.findByTellerAccount(request._2)
@@ -121,6 +121,4 @@ trait TellerEndpoints {
   val transactions = "/transactions"
   val permissions = "&permissions=balance:true,full_account_number:true,transaction_history:true"
 
-  implicit def onSuccessDecodingError[TellerResponse](decodingError: io.circe.Error): TellerResponse = throw new Exception(s"Error decoding trains upstream response: $decodingError")
-  implicit def onErrorDecodingError[TellerResponse](decodingError: String): TellerResponse = throw new Exception(s"Error decoding upstream error response: $decodingError")
 }
