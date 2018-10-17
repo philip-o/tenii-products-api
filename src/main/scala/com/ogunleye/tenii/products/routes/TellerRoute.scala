@@ -33,6 +33,7 @@ class TellerRoute(implicit system: ActorSystem, breaker: CircuitBreaker) extends
         logger.info(s"POST /teller/bankAccounts - $request")
         onCompleteWithBreaker(breaker)(tellActor ? request) {
           case Success(msg: List[TellerAccountResponse]) => complete(StatusCodes.OK -> msg)
+          case Success(other: Exception) => complete(StatusCodes.InternalServerError -> other)
           case Failure(t) => failWith(t)
         }
       }
@@ -44,6 +45,7 @@ class TellerRoute(implicit system: ActorSystem, breaker: CircuitBreaker) extends
         logger.info(s"POST /teller/transactions - $request")
         onCompleteWithBreaker(breaker)(tellActor ? request) {
           case Success(msg: List[TellerTransaction]) => complete(StatusCodes.OK -> TellerTransactionsResponse(msg))
+          case Success(other: Exception) => complete(StatusCodes.InternalServerError -> other)
           case Failure(t) => failWith(t)
         }
       }

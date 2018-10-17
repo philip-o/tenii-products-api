@@ -37,8 +37,10 @@ class TellerActor extends Actor with LazyLogging with TellerEndpoints with Trans
       http.endpointGet[List[TellerTransaction]](s"$apiHost$accounts${request.accountId}$transactions", ("Authorization", s"Bearer ${request.id}")).onComplete {
         case Success(resp) => senderRef ! resp
           val today = LocalDate.now()
-          val date = Integer.getInteger(s"${today.getYear}${String.format("%02d%n", today.getMonthValue.toString)}${today.getDayOfMonth}")
-          val transactions = resp.takeWhile(i => Integer.getInteger(i.date.replace("-","")) >= date)
+          val month = today.getMonthValue
+          val formattedMonth = if(month < 10) "0" + month else month.toString
+          val date = Integer.parseInt(s"${today.getYear}$formattedMonth${today.getDayOfMonth}")
+          val transactions = resp.takeWhile(i => Integer.parseInt(i.date.replace("-","")) >= date)
           if(transactions.nonEmpty) {
             self ! (transactions, request.accountId)
             logger.info(s"Sending ${transactions.size} transactions for potential tenii payments")
@@ -90,7 +92,10 @@ class TellerActor extends Actor with LazyLogging with TellerEndpoints with Trans
   }
 
   private def saveTran(trans: TellerTransaction, account: String, oldTran: TellerDebitTransaction*) : Unit = {
-    val tran =  if(oldTran.nonEmpty) toTellerDebitTransaction(trans, account) else toTellerDebitTransaction(trans, account).copy(id = oldTran.head.id)
+    val tran =  if(oldTran.nonEmpty)
+      toTellerDebitTransaction(trans, account)
+    else
+      toTellerDebitTransaction(trans, account).copy(id = oldTran.head.id)
 
     Future {
       connection.save(tran)
@@ -109,8 +114,6 @@ trait PaymentsEndpoints {
 
   implicit def onSuccessDecodingError[TellerTeniiPaymentsResponse](decodingError: io.circe.Error): TellerTeniiPaymentsResponse = throw new Exception(s"Error decoding trains upstream response: $decodingError")
   implicit def onErrorDecodingError[TellerTeniiPaymentsResponse](decodingError: String): TellerTeniiPaymentsResponse = throw new Exception(s"Error decoding upstream error response: $decodingError")
-
-
 }
 
 trait TellerEndpoints {
