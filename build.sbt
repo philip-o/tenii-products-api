@@ -5,7 +5,6 @@ version := "0.1"
 scalaVersion := "2.12.2"
 
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
-resolvers += "Artifactory" at "https://eurostar.jfrog.io/eurostar/libs-release/"
 
 val akkaV       = "2.4.19"
 val akkaHttpV   = "10.0.8"

@@ -5,7 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteConcatenation
 import akka.pattern.CircuitBreaker
 import akka.stream.ActorMaterializer
-import com.ogunleye.tenii.products.routes.{BankAccountRoute, MortgageRoute, TellerRoute, TransactionRoute}
+import com.ogunleye.tenii.products.routes._
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.duration._
@@ -28,8 +28,9 @@ object TeniiApp extends App with LazyLogging with RouteConcatenation {
   val bankAccountRoute = new BankAccountRoute().route
   val transactionRoute = new TransactionRoute().route
   val tellerRoute = new TellerRoute().route
+  val pingRoute = new PingRoute().route
 
-  val routes = mortgageRoute ~ bankAccountRoute ~ transactionRoute ~ tellerRoute //~ registerRoute ~ verifyRoute //~ searchRoute //buildInfoRoute.route ~ healthRoute ~ swaggerDocRoute ~ swaggerSiteRoute ~ prebookingRoute ~ vendorRoute
+  val routes = mortgageRoute ~ bankAccountRoute ~ transactionRoute ~ tellerRoute ~ pingRoute//~ registerRoute ~ verifyRoute //~ searchRoute //buildInfoRoute.route ~ healthRoute ~ swaggerDocRoute ~ swaggerSiteRoute ~ prebookingRoute ~ vendorRoute
 
   val port = Properties.envOrElse("PORT", "8080").toInt
   Http().bindAndHandle(routes, "0.0.0.0", port)

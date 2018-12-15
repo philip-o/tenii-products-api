@@ -122,6 +122,5 @@ trait TellerEndpoints {
   val appId = "application_id="
   val accounts = "accounts/"
   val transactions = "/transactions"
-  val permissions = "&permissions=balance:true,full_account_number:true,transaction_history:true"
 
 }
