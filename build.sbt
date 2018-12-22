@@ -19,8 +19,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream" % akkaV,
   "com.typesafe.akka" %% "akka-slf4j" % akkaV,
   "com.typesafe.akka" %% "akka-http" % akkaHttpV,
+  "com.typesafe.play" %% "play-json" % "2.6.2",
 
-  // test
+    // test
   "com.typesafe.akka" %% "akka-testkit" % akkaV % "test",
   "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpV % "test",
   "org.scalatest"     %% "scalatest" % scalaTestV % "test",

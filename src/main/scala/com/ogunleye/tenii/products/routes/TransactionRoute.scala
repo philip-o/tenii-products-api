@@ -6,7 +6,6 @@ import akka.http.scaladsl.server.Route
 import akka.pattern.{ CircuitBreaker, ask }
 import akka.util.Timeout
 import com.ogunleye.tenii.products.actors.TransactionActor
-import com.ogunleye.tenii.products.model.api.temp.{ AddTransactionResponse, Transaction }
 import com.typesafe.scalalogging.LazyLogging
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
@@ -24,17 +23,18 @@ class TransactionRoute(implicit system: ActorSystem, breaker: CircuitBreaker) ex
   protected val transactionActor: ActorRef = system.actorOf(Props[TransactionActor])
 
   def route: Route = pathPrefix("transaction") {
-    addTransaction
+    processTransaction
   }
 
-  def addTransaction: Route =
+  def processTransaction: Route =
     post {
-      entity(as[Transaction]) { request =>
-        logger.info(s"POST /transaction - $request")
-        onCompleteWithBreaker(breaker)(transactionActor ? request) {
-          case Success(msg: AddTransactionResponse) => complete(StatusCodes.Created -> msg)
-          case Failure(t) => failWith(t)
-        }
-      }
+//      entity(as[Transaction]) { request =>
+//        logger.info(s"POST /transaction - $request")
+//        onCompleteWithBreaker(breaker)(transactionActor ? request) {
+//          case Success(msg: ProcessTransactionResponse) => complete(StatusCodes.Created -> msg)
+//          case Failure(t) => failWith(t)
+//        }
+//      }
+      complete("""{"status": "OK}""")
     }
 }

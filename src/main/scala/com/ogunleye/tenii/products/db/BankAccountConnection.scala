@@ -10,23 +10,15 @@ class BankAccountConnection extends ObjectMongoConnection[BankAccount] with Lazy
   val collection = "bankAccount"
 
   override def transform(obj: BankAccount): MongoDBObject = {
-    MongoDBObject("_id" -> obj.id, "userId" -> obj.userId, "provider" -> obj.provider, "sortCode" -> obj.sortCode,
-      "accountNumber" -> obj.accountNumber, "balance" -> obj.balance)
+    MongoDBObject("_id" -> obj.id, "teniiId" -> obj.teniiId, "accountId" -> obj.accountId)
   }
 
-  def findByUserId(userId: String): List[BankAccount] = {
-    findAllByProperty("userId", userId, s"No bank accounts found with userId: $userId")
+  def findByUserId(teniiId: String): Option[BankAccount] = {
+    findByProperty("teniiId", teniiId, s"No bank account found with teniiId: $teniiId")
   }
 
-  def findByAccountNumber(accountNumber: String): Option[BankAccount] = {
-    findByProperty("accountNumber", accountNumber, s"No bank account found with accountNumber: $accountNumber")
-  }
-
-  def findByAccountNumberUserId(accountNumber: String, userId: String): Option[BankAccount] = {
-    findByProperties(
-      List(("accountNumber", accountNumber), ("userId", userId)),
-      s"No bank account found with accountNumber: $accountNumber and userId $userId"
-    )
+  def findByAccountId(accountId: String): Option[BankAccount] = {
+    findByProperty("accountId", accountId, s"No bank account found with accountId: $accountId")
   }
 
   def findById(id: String): Option[BankAccount] =
@@ -35,11 +27,8 @@ class BankAccountConnection extends ObjectMongoConnection[BankAccount] with Lazy
   override def revert(obj: MongoDBObject): BankAccount = {
     BankAccount(
       Some(getObjectId(obj, "_id")),
-      getString(obj, "userId"),
-      getString(obj, "provider"),
-      getString(obj, "sortCode"),
-      getString(obj, "accountNumber"),
-      getDouble(obj, "balance")
+      getString(obj, "teniiId"),
+      getString(obj, "accountId")
     )
   }
 
