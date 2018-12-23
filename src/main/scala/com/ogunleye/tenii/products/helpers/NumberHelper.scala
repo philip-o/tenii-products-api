@@ -1,6 +1,6 @@
 package com.ogunleye.tenii.products.helpers
 
-trait NumberHelper {
+object NumberHelper {
 
   def roundTo2DPAsDouble(value: Double): Double = {
     BigDecimal(value).setScale(2, BigDecimal.RoundingMode.UP).toDouble

@@ -41,6 +41,15 @@ class BankAccountActor extends Actor with LazyLogging with AccountImplicit {
           senderRef ! SourceBankAccountErrorResponse("Failed to lookup account")
       }
 
+    case trans: Transaction =>
+      val senderRef = sender()
+      Future {
+        connection.findByUserId(trans.teniiId)
+      } onComplete {
+        case Success(acc) => senderRef ! acc
+        case Failure(t) => logger.error(s"Failure when looking up account for transaction: $trans", t)
+          senderRef ! None
+      }
     case other => logger.error(s"Unknown message received: $other")
   }
 }

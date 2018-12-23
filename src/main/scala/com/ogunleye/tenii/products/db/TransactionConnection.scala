@@ -11,12 +11,16 @@ class TransactionConnection extends ObjectMongoConnection[Transaction] with Lazy
   val collection = "transaction"
 
   override def transform(obj: Transaction): MongoDBObject = {
-    MongoDBObject("_id" -> obj.id, "userId" -> obj.userId, "provider" -> obj.provider, "sortCode" -> obj.sortCode,
-      "accountNumber" -> obj.accountNumber, "date" -> obj.date, "amount" -> obj.amount)
+    MongoDBObject("_id" -> obj.id, "transactionId" -> obj.transactionId, "accountId" -> obj.accountId, "teniiId" -> obj.teniiId,
+      "date" -> obj.date, "amount" -> obj.amount)
   }
 
-  def findByAccountNumber(accountNumber: String): List[Transaction] = {
-    findAllByProperty("accountNumber", accountNumber, s"No transactions found with accountNumber: $accountNumber")
+  def findByAccountId(accountId: String): Option[Transaction] = {
+    findByProperty("accountId", accountId, s"No transaction found with accountId: $accountId")
+  }
+
+  def findByTeniiId(teniiId: String): Option[Transaction] = {
+    findByProperty("teniiId", teniiId, s"No transaction found with teniiId: $teniiId")
   }
 
   def findById(id: String): Option[Transaction] =
@@ -25,12 +29,11 @@ class TransactionConnection extends ObjectMongoConnection[Transaction] with Lazy
   override def revert(obj: MongoDBObject): Transaction = {
     Transaction(
       Some(getObjectId(obj, "_id")),
-      getString(obj, "userId"),
-      getString(obj, "provider"),
-      getString(obj, "sortCode"),
-      getString(obj, "accountNumber"),
-      getString(obj, "date"),
-      getDouble(obj, "amount")
+      getString(obj, "transactionId"),
+      getString(obj, "accountId"),
+      getString(obj, "teniiId"),
+      getDouble(obj, "amount"),
+      getString(obj, "date")
     )
   }
 }
