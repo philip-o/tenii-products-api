@@ -13,7 +13,7 @@ object TransactionHelper extends LazyLogging {
 
   def applyRoundingForRoarType(roarType: RoarType, transaction: Transaction): Double = {
 
-    val roundedTransaction = math.ceil(transaction.amount * -1)
+    val roundedTransaction = transaction.amount + math.ceil(transaction.amount * -1)
 
     if(roundedTransaction == 0)
       roundedTransaction
