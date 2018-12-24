@@ -51,6 +51,7 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
             }
             else {
               logger.debug(s"Received old transaction: ${trans.transactionId}, will not send to api for processing")
+              senderRef ! ProcessTransactionResponse(trans.transactionId, None)
             }
           case (Some(_), None) =>
             logger.debug(s"Processed transaction: ${trans.transactionId}, sent to api for processing")
