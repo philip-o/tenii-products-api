@@ -2,7 +2,7 @@ package com.ogunleye.tenii.products.external
 
 trait PaymentEndpoints {
 
-  val paymentsApiHost = "https://tenii-payments-api.heroku.com/"
+  val paymentsApiHost = "https://tenii-payments-api.herokuapp.com/"
   val updatePot = "credit"
 
   implicit def onSuccessDecodingError[TellerTeniiPaymentsResponse](decodingError: io.circe.Error): TellerTeniiPaymentsResponse = throw new Exception(s"Error decoding trains upstream response: $decodingError")
