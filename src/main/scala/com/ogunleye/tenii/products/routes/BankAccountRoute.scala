@@ -40,7 +40,7 @@ class BankAccountRoute(implicit system: ActorSystem, breaker: CircuitBreaker) ex
 
   def getBankAccount: Route =
     get {
-      (pathEnd & userIdDirective).as(GetBankAccountRequest) {
+      path(userIdSegment).as(GetBankAccountRequest) {
         request =>
           logger.info(s"GET /bankAccount - $request")
           onCompleteWithBreaker(breaker)(bankAccountActor ? request) {
