@@ -6,7 +6,7 @@ import akka.util.Timeout
 import com.ogunleye.tenii.products.db.TransactionConnection
 import com.ogunleye.tenii.products.external.{HttpTransfers, PaymentEndpoints}
 import com.ogunleye.tenii.products.helpers.{NumberHelper, TransactionHelper}
-import com.ogunleye.tenii.products.model.api.{ProcessTransactionResponse, TeniiPotCreditRequest, TeniiPotCreditResponse, Transaction}
+import com.ogunleye.tenii.products.model.api._
 import com.ogunleye.tenii.products.model.{Roar, RoarType}
 import com.ogunleye.tenii.products.model.db.{BankAccount, Transaction => DBTransaction}
 import com.ogunleye.tenii.products.model.implicits.TransactionImplicit
@@ -63,6 +63,20 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
         }
         case Failure(t) => senderRef ! ProcessTransactionResponse(trans.transactionId, Some("Failed to process transaction"))
           logger.error(s"Failed to process transaction: $trans, due to error", t)
+      }
+
+    case request: GetTransactionRequest =>
+      val senderRef = sender()
+      Future {
+        connection.findByTeniiId(request.teniiId)
+      } onComplete {
+        case Success(transOpt) => transOpt match {
+          case Some(tran) => logger.info(s"Response $tran")
+            senderRef ! GetTransactionResponse(Some(tran.transactionId), tran.teniiId)
+          case None => senderRef ! GetTransactionResponse(None, request.teniiId)
+        }
+        case Failure(t) => senderRef ! GetTransactionErrorResponse(s"Error thrown when looking up transaction")
+          logger.error(s"Error thrown when looking up transaction", t)
       }
 
     case other => logger.error(s"Unknown message received: $other")
