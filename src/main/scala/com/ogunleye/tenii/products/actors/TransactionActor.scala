@@ -50,7 +50,7 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
               sendToPayment(trans.teniiId, roundedAmount)
             }
             else {
-              logger.debug(s"Received old transaction: ${trans.transactionId}, will not send to api for processing")
+              logger.debug(s"Received old transaction: $trans, db transaction: $dbTran will not send to api for processing")
               senderRef ! ProcessTransactionResponse(trans.transactionId, None)
             }
           case (Some(_), None) =>
