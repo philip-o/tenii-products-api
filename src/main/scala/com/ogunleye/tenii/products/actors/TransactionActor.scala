@@ -8,7 +8,7 @@ import com.ogunleye.tenii.products.external.{HttpTransfers, PaymentEndpoints}
 import com.ogunleye.tenii.products.helpers.{NumberHelper, TransactionHelper}
 import com.ogunleye.tenii.products.model.api._
 import com.ogunleye.tenii.products.model.{Roar, RoarType}
-import com.ogunleye.tenii.products.model.db.{BankAccount, Transaction => DBTransaction}
+import com.ogunleye.tenii.products.model.db.{BankAccount, DaysTransactions => DBTransaction}
 import com.ogunleye.tenii.products.model.implicits.TransactionImplicit
 import com.typesafe.scalalogging.LazyLogging
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
@@ -43,8 +43,8 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
           val roundedAmount = TransactionHelper.applyRoundingForRoarType(RoarType(Roar.BALANCED), trans)
           (acct,accOpt._2) match {
           case (Some(_), Some(dbTran)) => val dbDate = TransactionHelper.dateToNumber(dbTran.date)
-            if(dbDate < date || (dbDate == date && dbTran.transactionId != trans.transactionId)) {
-              updateTrans(trans, dbTran)
+            if(dbDate < date || (dbDate == date && dbTran.transactionIds.contains(trans.transactionId))) {
+              updateTrans(trans, dbTran, dbDate < date)
               senderRef ! ProcessTransactionResponse(trans.transactionId, None)
               logger.debug(s"Processed transaction: ${trans.transactionId}, sent to api for processing")
               sendToPayment(trans.teniiId, roundedAmount)
@@ -72,8 +72,8 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
       } onComplete {
         case Success(transOpt) => transOpt match {
           case Some(tran) => logger.info(s"Response $tran")
-            senderRef ! GetTransactionResponse(Some(tran.transactionId), tran.teniiId)
-          case None => senderRef ! GetTransactionResponse(None, request.teniiId)
+            senderRef ! GetTransactionResponse(tran.transactionIds, tran.teniiId)
+          case None => senderRef ! GetTransactionResponse(Nil, request.teniiId)
         }
         case Failure(t) => senderRef ! GetTransactionErrorResponse(s"Error thrown when looking up transaction")
           logger.error(s"Error thrown when looking up transaction", t)
@@ -132,8 +132,13 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
 
   def saveTrans(trans: Transaction) = Future { connection.save(trans) }
 
-  def updateTrans(trans: Transaction, dbTrans: DBTransaction) = Future {
-    connection.save(dbTrans.copy(transactionId = dbTrans.transactionId, amount = dbTrans.amount, date = dbTrans.date))
+  def updateTrans(trans: Transaction, dbTrans: DBTransaction, overwrite: Boolean) = Future {
+    val toSave =
+      if(overwrite)
+        dbTrans.copy(transactionIds = List(trans.transactionId), amount = trans.amount, date = trans.date)
+      else
+        dbTrans.copy(transactionIds = dbTrans.transactionIds.::(trans.transactionId), amount = trans.amount)
+    connection.save(toSave)
   }
 //
 //  def updateBankBalance(trans: Transaction, bankAccount: BankAccount): Unit = bankAccountActor ! bankAccount.copy(balance = roundTo2DPAsDouble(bankAccount.balance + trans.amount))

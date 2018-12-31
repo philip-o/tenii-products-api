@@ -7,7 +7,7 @@ import com.ogunleye.tenii.products.model.{ Roar, RoarType }
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ BeforeAndAfterAll, FlatSpecLike }
 
-class TransactionHelperTest extends TestKit(ActorSystem("TransactionHelperTest")) with MockFactory with BeforeAndAfterAll with FlatSpecLike {
+class DaysTransactionsHelperTest extends TestKit(ActorSystem("TransactionHelperTest")) with MockFactory with BeforeAndAfterAll with FlatSpecLike {
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)
