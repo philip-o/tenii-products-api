@@ -72,8 +72,8 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
       } onComplete {
         case Success(transOpt) => transOpt match {
           case Some(tran) => logger.info(s"Response $tran")
-            senderRef ! GetTransactionResponse(tran.transactionIds, tran.teniiId)
-          case None => senderRef ! GetTransactionResponse(Nil, request.teniiId)
+            senderRef ! GetTransactionResponse(tran.transactionIds, tran.teniiId, Some(tran.date))
+          case None => senderRef ! GetTransactionResponse(Nil, request.teniiId, None)
         }
         case Failure(t) => senderRef ! GetTransactionErrorResponse(s"Error thrown when looking up transaction")
           logger.error(s"Error thrown when looking up transaction", t)
