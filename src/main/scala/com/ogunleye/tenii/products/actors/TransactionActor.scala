@@ -43,7 +43,8 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
           val roundedAmount = TransactionHelper.applyRoundingForRoarType(RoarType(Roar.BALANCED), trans)
           (acct,accOpt._2) match {
           case (Some(_), Some(dbTran)) => val dbDate = TransactionHelper.dateToNumber(dbTran.date)
-            if(dbDate < date || (dbDate == date && dbTran.transactionIds.contains(trans.transactionId))) {
+            //TODO test logic for tests
+            if(dbDate < date || (dbDate == date && !dbTran.transactionIds.contains(trans.transactionId))) {
               updateTrans(trans, dbTran, dbDate < date)
               senderRef ! ProcessTransactionResponse(trans.transactionId, None)
               logger.debug(s"Processed transaction: ${trans.transactionId}, sent to api for processing")
