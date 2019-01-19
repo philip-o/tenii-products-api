@@ -10,6 +10,7 @@ import com.ogunleye.tenii.products.model.api._
 import com.typesafe.scalalogging.LazyLogging
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
+import io.swagger.annotations._
 import javax.ws.rs.Path
 
 import scala.concurrent.ExecutionContext
@@ -17,6 +18,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 @Path("/bankAccount")
+@Api(value = "/bankAccount", description = "Route to add and get source bank details", produces = "application/json")
 class BankAccountRoute(implicit system: ActorSystem, breaker: CircuitBreaker) extends RequestDirectives with LazyLogging {
 
   implicit val executor: ExecutionContext = system.dispatcher
@@ -27,6 +29,24 @@ class BankAccountRoute(implicit system: ActorSystem, breaker: CircuitBreaker) ex
     addBankAccount ~ getBankAccount
   }
 
+  @ApiOperation(
+    httpMethod = "POST",
+    response = classOf[SourceBankAccountResponse],
+    value = "Add source bank account for user",
+    consumes = "application/json",
+    notes =
+      """
+         Add source bank account for user
+      """
+  )
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "teniiId", dataType = "string", value = "The tenii Id for the user to find their account", paramType = "body", required = true),
+    new ApiImplicitParam(name = "accountId", dataType = "java.lang.String", paramType = "body", value = "The id for the user with the SLC", required = true)
+  ))
+  @ApiResponses(Array(
+    new ApiResponse(code = 201, message = "Created", response = classOf[SourceBankAccountResponse]),
+    new ApiResponse(code = 500, message = "Internal Server Error", response = classOf[Throwable])
+  ))
   def addBankAccount: Route =
     post {
       entity(as[SourceBankAccount]) { request =>
@@ -38,6 +58,25 @@ class BankAccountRoute(implicit system: ActorSystem, breaker: CircuitBreaker) ex
       }
     }
 
+  @Path("{teniiId}")
+  @ApiOperation(
+    httpMethod = "GET",
+    response = classOf[SourceBankAccountResponse],
+    value = "Get source bank account for user",
+    consumes = "application/json",
+    notes =
+      """
+         Get source bank account for user
+      """
+  )
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "teniiId", dataType = "string", value = "The tenii Id for the user to find their account", paramType = "body", required = true)
+  ))
+  @ApiResponses(Array(
+    new ApiResponse(code = 201, message = "Created", response = classOf[SourceBankAccountResponse]),
+    new ApiResponse(code = 400, message = "Bad Request", response = classOf[SourceBankAccountResponse]),
+    new ApiResponse(code = 500, message = "Internal Server Error", response = classOf[Throwable])
+  ))
   def getBankAccount: Route =
     get {
       path(userIdSegment).as(GetBankAccountRequest) {

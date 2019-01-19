@@ -5,13 +5,14 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteConcatenation
 import akka.pattern.CircuitBreaker
 import akka.stream.ActorMaterializer
+import com.github.swagger.akka.SwaggerSite
 import com.ogunleye.tenii.products.routes._
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.duration._
 import scala.util.Properties
 
-object TeniiApp extends App with LazyLogging with RouteConcatenation {
+object TeniiApp extends App with LazyLogging with RouteConcatenation with SwaggerSite {
 
   val applicationName = "tenii-products"
 
@@ -23,13 +24,13 @@ object TeniiApp extends App with LazyLogging with RouteConcatenation {
   implicit val breaker = CircuitBreaker(system.scheduler, 20, 100 seconds, 12 seconds)
 
   // routes
-  //val swaggerDocRoute = new SwaggerDocRoute().routes
+  val swaggerDocRoute = new SwaggerDocRoute().routes
   //val mortgageRoute = new MortgageRoute().route
   val bankAccountRoute = new BankAccountRoute().route
   val transactionRoute = new TransactionRoute().route
   val pingRoute = new PingRoute().route
 
-  val routes = bankAccountRoute ~ transactionRoute ~ pingRoute //mortgageRoute ~
+  val routes = bankAccountRoute ~ transactionRoute ~ pingRoute ~ swaggerSiteRoute ~ swaggerDocRoute
 
   val port = Properties.envOrElse("PORT", "8080").toInt
   Http().bindAndHandle(routes, "0.0.0.0", port)
