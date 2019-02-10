@@ -22,7 +22,7 @@ class BankAccountActor extends Actor with LazyLogging with AccountImplicit {
         connection.save(request)
       } onComplete {
         case Success(_) => logger.info(s"Saved source bank account for request: $request")
-          senderRef ! SourceBankAccountResponse(Some(request.accountId))
+          senderRef ! SourceBankAccountResponse(request.accountId)
         case Failure(t) => logger.error(s"Error thrown while trying to save: $request", t)
           senderRef ! ErrorResponse("SAVE_ERROR", Some("Error thrown while trying to save"))
       }
@@ -33,7 +33,7 @@ class BankAccountActor extends Actor with LazyLogging with AccountImplicit {
         connection.findByUserId(request.teniiId)
       } onComplete {
         case Success(accOpt) => accOpt match {
-          case Some(acc) => senderRef ! SourceBankAccountResponse(Some(acc.accountId), Some(acc.teniiId))
+          case Some(acc) => senderRef ! SourceBankAccountResponse(acc.accountId)
           case None => senderRef ! ErrorResponse("NO_USER", Some(s"No account for user: ${request.teniiId}"))
             logger.info(s"No account for user: ${request.teniiId}")
         }
