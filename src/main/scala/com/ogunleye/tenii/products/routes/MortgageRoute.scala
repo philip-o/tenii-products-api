@@ -1,7 +1,6 @@
 package com.ogunleye.tenii.products.routes
 
 import akka.actor.{ ActorRef, ActorSystem, Props }
-import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import akka.pattern.{ CircuitBreaker, ask }
 import akka.util.Timeout
@@ -9,7 +8,6 @@ import com.ogunleye.tenii.products.actors.MortgageActor
 import com.typesafe.scalalogging.LazyLogging
 import javax.ws.rs.Path
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
-import io.circe.generic.auto._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

@@ -1,6 +1,6 @@
 package com.ogunleye.tenii.products.actors
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.Actor
 import com.ogunleye.tenii.products.db.BankAccountConnection
 import com.ogunleye.tenii.products.model.api._
 import com.ogunleye.tenii.products.model.implicits.AccountImplicit
@@ -22,9 +22,9 @@ class BankAccountActor extends Actor with LazyLogging with AccountImplicit {
         connection.save(request)
       } onComplete {
         case Success(_) => logger.info(s"Saved source bank account for request: $request")
-          senderRef ! SourceBankAccountResponse(Some(request.accountId), Some(request.teniiId))
+          senderRef ! SourceBankAccountResponse(Some(request.accountId))
         case Failure(t) => logger.error(s"Error thrown while trying to save: $request", t)
-          senderRef ! SourceBankAccountErrorResponse("Error thrown while trying to save")
+          senderRef ! ErrorResponse("SAVE_ERROR", Some("Error thrown while trying to save"))
       }
 
     case request: GetBankAccountRequest =>
@@ -34,11 +34,11 @@ class BankAccountActor extends Actor with LazyLogging with AccountImplicit {
       } onComplete {
         case Success(accOpt) => accOpt match {
           case Some(acc) => senderRef ! SourceBankAccountResponse(Some(acc.accountId), Some(acc.teniiId))
-          case None => senderRef ! SourceBankAccountResponse(None, Some(request.teniiId))
-            logger.info("No account for user")
+          case None => senderRef ! ErrorResponse("NO_USER", Some(s"No account for user: ${request.teniiId}"))
+            logger.info(s"No account for user: ${request.teniiId}")
         }
         case Failure(t) => logger.error("Failed to lookup account", t)
-          senderRef ! SourceBankAccountErrorResponse("Failed to lookup account")
+          senderRef ! ErrorResponse("SEARCH_ERROR", Some("Failed to lookup account"))
       }
 
     case trans: Transaction =>
