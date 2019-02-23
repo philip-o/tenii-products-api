@@ -23,6 +23,10 @@ class TransactionConnection extends ObjectMongoConnection[DaysTransactions] with
     findByProperty("teniiId", teniiId, s"No transaction found with teniiId: $teniiId")
   }
 
+  def findByTeniiAndAccountId(teniiId: String, accountId: String): Option[DaysTransactions] = {
+    findAllByProperty("teniiId", teniiId, s"No transaction found with teniiId: $teniiId").find(d => d.accountId == accountId)
+  }
+
   def findById(id: String): Option[DaysTransactions] =
     findByObjectId(id, s"No transaction found with id: $id")
 

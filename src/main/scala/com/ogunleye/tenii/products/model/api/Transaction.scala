@@ -9,4 +9,4 @@ case class GetTransactionResponse(transactionIds: List[String], teniiId: String,
 
 case class GetTransactionErrorResponse(error: String)
 
-case class GetTransactionRequest(teniiId: String)
+case class GetTransactionRequest(teniiId: String, accountId: String)

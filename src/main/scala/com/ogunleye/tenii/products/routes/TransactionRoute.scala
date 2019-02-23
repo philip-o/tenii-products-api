@@ -41,7 +41,7 @@ class TransactionRoute(implicit system: ActorSystem, breaker: CircuitBreaker) ex
 
   def getLastTransaction : Route =
     get {
-      path(userIdSegment).as(GetTransactionRequest) {
+      path(userIdSegment / accountIdSegment).as(GetTransactionRequest) {
         request =>
           logger.info(s"GET /transaction - $request")
           onCompleteWithBreaker(breaker)(transactionActor ? request) {

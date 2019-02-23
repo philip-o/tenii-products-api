@@ -1,17 +1,16 @@
 package com.ogunleye.tenii.products.actors
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
 import com.ogunleye.tenii.products.db.TransactionConnection
 import com.ogunleye.tenii.products.external.{HttpTransfers, PaymentEndpoints}
-import com.ogunleye.tenii.products.helpers.{NumberHelper, TransactionHelper}
+import com.ogunleye.tenii.products.helpers.TransactionHelper
 import com.ogunleye.tenii.products.model.api._
 import com.ogunleye.tenii.products.model.{Roar, RoarType}
-import com.ogunleye.tenii.products.model.db.{BankAccount, DaysTransactions => DBTransaction}
+import com.ogunleye.tenii.products.model.db.{SourceBankAccounts, DaysTransactions => DBTransaction}
 import com.ogunleye.tenii.products.model.implicits.TransactionImplicit
 import com.typesafe.scalalogging.LazyLogging
-import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 
 import scala.concurrent.duration._
@@ -24,7 +23,7 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
   val connection = new TransactionConnection
   val bankAccountActor: ActorRef = context.actorOf(Props[BankAccountActor])
   val mortgageActor: ActorRef = context.actorOf(Props[MortgageActor])
-  implicit val system = context.system
+  implicit val system : ActorSystem = context.system
   val http = new HttpTransfers()
 
   override def receive: Receive = {
@@ -32,14 +31,15 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
       val senderRef = sender()
       implicit val timeout: Timeout = Timeout(10.seconds)
       val accountOpt = bankAccountActor ? trans
-      val transactionOpt = Future { connection.findByTeniiId(trans.teniiId) }
+      val transactionOpt = Future { connection.findByTeniiAndAccountId(trans.teniiId, trans.accountId) }
       val result = for {
         account <- accountOpt
         transaction <- transactionOpt
       } yield (account, transaction)
       result.onComplete {
-        case Success(accOpt : (Any, Option[DBTransaction])) => val acct = accOpt._1.asInstanceOf[Option[BankAccount]]
+        case Success(accOpt : (Any, Option[DBTransaction])) => val acct = accOpt._1.asInstanceOf[Option[SourceBankAccounts]]
           val date = TransactionHelper.dateToNumber(trans.date)
+          //TODO Lookup user's rounding type
           val roundedAmount = TransactionHelper.applyRoundingForRoarType(RoarType(Roar.BALANCED), trans)
           (acct,accOpt._2) match {
           case (Some(_), Some(dbTran)) => val dbDate = TransactionHelper.dateToNumber(dbTran.date)
@@ -69,7 +69,7 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
     case request: GetTransactionRequest =>
       val senderRef = sender()
       Future {
-        connection.findByTeniiId(request.teniiId)
+        connection.findByTeniiAndAccountId(request.teniiId, request.accountId)
       } onComplete {
         case Success(transOpt) => transOpt match {
           case Some(tran) => logger.info(s"Response $tran")
@@ -122,8 +122,8 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
 //      }
   }
 
-  def sendToPayment(teniiId: String, amount: Double) = {
-    implicit val finiteDuration = 20.seconds
+  def sendToPayment(teniiId: String, amount: Double) : Unit = {
+    implicit val finiteDuration : FiniteDuration = 20.seconds
     http.endpoint[TeniiPotCreditRequest, TeniiPotCreditResponse](s"$paymentsApiHost$updatePot", toPotCreditRequest(teniiId, amount)) onComplete {
       case Success(response) if response.cause.isEmpty => logger.info(s"Processed pot credit for user $teniiId")
       case Success(response) if response.cause.nonEmpty => logger.error(s"Processed pot credit for user $teniiId due to ${response.cause.get}")
