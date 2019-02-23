@@ -26,10 +26,11 @@ class BankAccountActor extends Actor with LazyLogging with AccountImplicit {
       } onComplete {
         case Success(source) => source match {
           case Some(acc) => sourceBankAccountConnection.save(acc.copy(accountIds = acc.accountIds. +(request.accountId)))
+            senderRef ! SourceBankAccountsResponse(acc.accountIds. +(request.accountId))
           case None => sourceBankAccountConnection.save(request)
+            senderRef ! SourceBankAccountsResponse(Set(request.accountId))
         }
           logger.info(s"Saved source bank account for request: $request")
-          senderRef ! SourceBankAccountResponse(request.accountId)
         case Failure(t) => logger.error(s"Error thrown while trying to search: $request", t)
           senderRef ! ErrorResponse("SEARCH_ERROR", Some("Error thrown while trying to search"))
       }
