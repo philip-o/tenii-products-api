@@ -50,7 +50,7 @@ class BankAccountActor extends Actor with LazyLogging with AccountImplicit {
       } onComplete {
         case Success(accOpt) => accOpt match {
           case Some(acc) => senderRef ! SourceBankAccountsResponse(acc.accountIds)
-          case None => senderRef ! ErrorResponse("NO_USER", Some(s"No account for user: ${request.teniiId}"))
+          case None => senderRef ! SourceBankAccountsResponse(Set.empty)
             logger.info(s"No account for user: ${request.teniiId}")
         }
         case Failure(t) => logger.error("Failed to lookup account", t)
