@@ -37,6 +37,7 @@ class TransactionActor extends Actor with LazyLogging with TransactionImplicit w
         transaction <- transactionOpt
       } yield (account, transaction)
       result.onComplete {
+        //TODO Change any to option source bank account
         case Success(accOpt : (Any, Option[DBTransaction])) => val acct = accOpt._1.asInstanceOf[Option[SourceBankAccounts]]
           val date = TransactionHelper.dateToNumber(trans.date)
           //TODO Lookup user's rounding type

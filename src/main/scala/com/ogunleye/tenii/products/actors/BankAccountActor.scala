@@ -34,14 +34,6 @@ class BankAccountActor extends Actor with LazyLogging with AccountImplicit {
         case Failure(t) => logger.error(s"Error thrown while trying to search: $request", t)
           senderRef ! ErrorResponse("SEARCH_ERROR", Some("Error thrown while trying to search"))
       }
-//      Future {
-//        connection.save(request)
-//      } onComplete {
-//        case Success(_) => logger.info(s"Saved source bank account for request: $request")
-//          senderRef ! SourceBankAccountResponse(request.accountId)
-//        case Failure(t) => logger.error(s"Error thrown while trying to save: $request", t)
-//          senderRef ! ErrorResponse("SAVE_ERROR", Some("Error thrown while trying to save"))
-//      }
 
     case request: GetBankAccountRequest =>
       val senderRef = sender()
@@ -56,28 +48,8 @@ class BankAccountActor extends Actor with LazyLogging with AccountImplicit {
         case Failure(t) => logger.error("Failed to lookup account", t)
           senderRef ! ErrorResponse("SEARCH_ERROR", Some("Failed to lookup account"))
       }
-
-//      Future {
-//        connection.findByUserId(request.teniiId)
-//      } onComplete {
-//        case Success(accOpt) => accOpt match {
-//          case Some(acc) => senderRef ! SourceBankAccountResponse(acc.accountId)
-//          case None => senderRef ! ErrorResponse("NO_USER", Some(s"No account for user: ${request.teniiId}"))
-//            logger.info(s"No account for user: ${request.teniiId}")
-//        }
-//        case Failure(t) => logger.error("Failed to lookup account", t)
-//          senderRef ! ErrorResponse("SEARCH_ERROR", Some("Failed to lookup account"))
-//      }
-
     case trans: Transaction =>
       val senderRef = sender()
-//      Future {
-//        connection.findByUserId(trans.teniiId)
-//      } onComplete {
-//        case Success(acc) => senderRef ! acc
-//        case Failure(t) => logger.error(s"Failure when looking up account for transaction: $trans", t)
-//          senderRef ! None
-//      }
       Future {
         sourceBankAccountConnection.findByUserId(trans.teniiId)
       } onComplete {
