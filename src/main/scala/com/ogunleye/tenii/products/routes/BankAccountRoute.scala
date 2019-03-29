@@ -31,7 +31,7 @@ class BankAccountRoute(implicit system: ActorSystem, breaker: CircuitBreaker) ex
 
   @ApiOperation(
     httpMethod = "POST",
-    response = classOf[SourceBankAccountsResponse],
+    response = classOf[SourceBankAccountResponse],
     value = "Add source bank account for user",
     consumes = "application/json",
     notes =
@@ -44,7 +44,7 @@ class BankAccountRoute(implicit system: ActorSystem, breaker: CircuitBreaker) ex
     new ApiImplicitParam(name = "accountId", dataType = "java.lang.String", paramType = "body", value = "The id for the user's bank account", required = true)
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 201, message = "Created", response = classOf[SourceBankAccountsResponse]),
+    new ApiResponse(code = 201, message = "Created", response = classOf[SourceBankAccountResponse]),
     new ApiResponse(code = 400, message = "Bad Request", response = classOf[ErrorResponse]),
     new ApiResponse(code = 500, message = "Internal Server Error", response = classOf[Throwable])
   ))
@@ -53,7 +53,7 @@ class BankAccountRoute(implicit system: ActorSystem, breaker: CircuitBreaker) ex
       entity(as[SourceBankAccount]) { request =>
         logger.info(s"POST /bankAccount - $request")
         onCompleteWithBreaker(breaker)(bankAccountActor ? request) {
-          case Success(msg: SourceBankAccountsResponse) => complete(StatusCodes.Created -> msg)
+          case Success(msg: SourceBankAccountResponse) => complete(StatusCodes.Created -> msg)
           case Success(msg: ErrorResponse) => complete(StatusCodes.BadRequest -> msg)
           case Failure(t) => failWith(t)
         }
@@ -63,7 +63,7 @@ class BankAccountRoute(implicit system: ActorSystem, breaker: CircuitBreaker) ex
   @Path("{teniiId}")
   @ApiOperation(
     httpMethod = "GET",
-    response = classOf[SourceBankAccountsResponse],
+    response = classOf[SourceBankAccountResponse],
     value = "Get source bank account for user",
     consumes = "application/json",
     notes =
@@ -75,7 +75,7 @@ class BankAccountRoute(implicit system: ActorSystem, breaker: CircuitBreaker) ex
     new ApiImplicitParam(name = "teniiId", dataType = "string", value = "The tenii Id for the user to find their account", paramType = "body", required = true)
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Ok", response = classOf[SourceBankAccountsResponse]),
+    new ApiResponse(code = 200, message = "Ok", response = classOf[SourceBankAccountResponse]),
     new ApiResponse(code = 400, message = "Bad Request", response = classOf[ErrorResponse]),
     new ApiResponse(code = 500, message = "Internal Server Error", response = classOf[Throwable])
   ))
@@ -86,7 +86,7 @@ class BankAccountRoute(implicit system: ActorSystem, breaker: CircuitBreaker) ex
           logger.info(s"GET /bankAccount - $request")
           onCompleteWithBreaker(breaker)(bankAccountActor ? request) {
             //case Success(msg: SourceBankAccountResponse) => complete(StatusCodes.OK -> msg)
-            case Success(msg: SourceBankAccountsResponse) => complete(StatusCodes.OK -> msg)
+            case Success(msg: SourceBankAccountResponse) => complete(StatusCodes.OK -> msg)
             case Success(msg: ErrorResponse) => complete(StatusCodes.BadRequest -> msg)
             case Failure(t) => failWith(t)
           }

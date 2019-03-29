@@ -2,7 +2,7 @@ package com.ogunleye.tenii.products.model.api
 
 case class SourceBankAccount(accountId: String, teniiId: String)
 
-case class SourceBankAccountsResponse(accountIds: Set[String])
+case class SourceBankAccountResponse(accountId: String)
 
 case class HasSourceBankAccountResponse(teniiId: String, hasAccount: Boolean)
 

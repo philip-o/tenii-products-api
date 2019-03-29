@@ -2,7 +2,7 @@ package com.ogunleye.tenii.products.config
 
 import com.typesafe.config.{Config, ConfigFactory}
 
-object Config {
+object TeniiConfig {
 
   private[config] val config: Config = ConfigFactory.load()
 
@@ -10,6 +10,6 @@ object Config {
   val host = config.getStringList("mongo.host").get(0)
 
   val teniiPayments = config.getStringList("tenii.payments.endpoint").get(0)
-  val creditPath = config.getStringList("tenii.pathments.creditPath").get(0)
+  val creditPath = config.getStringList("tenii.payments.creditPath").get(0)
 
 }

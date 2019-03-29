@@ -3,14 +3,14 @@ package com.ogunleye.tenii.products.db
 import java.util.Date
 
 import com.mongodb.casbah.Imports._
-import com.ogunleye.tenii.products.config.Config
+import com.ogunleye.tenii.products.config.TeniiConfig
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.util.Properties
 
 object MongoFactory {
-  private val DATABASE = Config.database
-  val uri = MongoClientURI(s"mongodb://${Config.host}/$DATABASE")
+  private val DATABASE = TeniiConfig.database
+  val uri = MongoClientURI(s"mongodb://${TeniiConfig.host}/$DATABASE")
   val mongoClient = MongoClient(uri)
   val db = mongoClient(DATABASE)
 
